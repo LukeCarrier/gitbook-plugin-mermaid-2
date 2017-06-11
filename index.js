@@ -1,56 +1,51 @@
-var mermaidRegex = /^```mermaid((.*\n)+?)?```$/im;
-var pluginName = 'mermaid-2';
-var mermainReleasedAssets = '/plugins/gitbook-plugin-mermaid-2/bower_components/mermaid/dist/';
+"use strict";
 
-function processMermaidBlockList(page) {
+const getInstalledPath = require('get-installed-path');
+const fs = require('fs-extra');
+const path = require('path');
 
-  var match;
+const mermaidRegex = /^```mermaid((.*\n)+?)?```$/im;
+const pluginName = 'mermaid-2';
 
-  while ((match = mermaidRegex.exec(page.content))) {
+function getAssets() {
+  const theme = this.config.get('pluginsConfig.mermaid-2.theme') || null;
+  const css = [
+    'mermaid/mermaid.css'
+  ];
+
+  if (theme) {
+    css.push('mermaid/mermaid.' + theme + '.css');
+  }
+
+  fs.copySync(path.join(getInstalledPath.sync('mermaid', {local: true}), 'dist'),
+      path.join(this.output.root(), 'gitbook', 'gitbook-plugin-mermaid-2', 'mermaid'));
+
+  return {
+    assets: './book',
+    css: css,
+    js: [
+      'mermaid/mermaid.js',
+      'plugin.js'
+    ]
+  }
+}
+
+function beforePage(page) {
+  let match;
+
+  while (match = mermaidRegex.exec(page.content)) {
     var rawBlock = match[0];
     var mermaidContent = match[1];
     page.content = page.content.replace(rawBlock, '<div class="mermaid">' +
-      mermaidContent + '</div>');
+        mermaidContent + '</div>');
   }
 
   return page;
 }
 
-function addScript(filePath) {
-  return '<script src="' + filePath + '"></script>'
-}
-
-function addCss(filePath) {
-  return '<link rel="stylesheet" href="' + filePath + '"></link>'
-}
-
 module.exports = {
-  website: {
-    assets: './book',
-    css: [
-      'bower_components/mermaid/dist/mermaid.css'
-    ],
-    js: [
-      'plugin.js'
-    ],
-    html: {
-      'head:end': function (options) {
-
-        var assetList = [
-          addScript(options.staticBase + mermainReleasedAssets + 'mermaid.min.js')
-        ];
-
-        var theme = (this.options.pluginsConfig[pluginName] || {}).theme;
-
-        if (theme) {
-          assetList.push(addCss(options.staticBase + mermainReleasedAssets + 'mermaid.' + theme + '.css'));
-        }
-
-        return assetList.join('');
-      }
-    }
-  },
+  book: getAssets,
   hooks: {
-    'page:before': processMermaidBlockList
+    'page:before': beforePage
   }
 };

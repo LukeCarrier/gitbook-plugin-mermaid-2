@@ -6,11 +6,10 @@
   "engines": {
     "gitbook": "*"
   },
-  "scripts": {
-    "postinstall": "bower install --allow-root"
-  },
   "dependencies": {
-    "bower": "*"
+    "fs-extra": "^3.0.1",
+    "get-installed-path": "^2.0.3",
+    "mermaid": "^7.0.3"
   },
   "devDependencies": {},
   "repository": {
